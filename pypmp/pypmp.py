@@ -68,6 +68,8 @@ class PasswordManagerProClient(object):
             LOGGER.warning(
                 f'Request to {res.url} failed: {jres["operation"]["result"]["message"]}'
             )
+            # Always return 'None' on both of failed and succeed of resource creation 
+            return jres["operation"]["result"]["status"]
         return jres.get("operation", {}).get("Details")
 
     def _get(self, endpoint, params=None, jdata=None, pki_api=False, raw=False):
@@ -152,9 +154,13 @@ class PasswordManagerProClient(object):
         resource_type="",
         notes="",
         url="",
+        resourcegroupname="default",
         resource_password_policy="Strong",
         account_password_policy="Strong",
-        custom_fields=None,
+        ownername='admin',
+        dnsname='',
+        location='',
+        custom_fields=None
     ):
         data = {
             "operation": {
@@ -163,10 +169,14 @@ class PasswordManagerProClient(object):
                     "ACCOUNTNAME": account_name,
                     "RESOURCETYPE": resource_type,
                     "PASSWORD": password,
-                    "NOTES": notes,
-                    "RESOURCEURL": url,
+                    "OWNERNAME": ownername,
                     "RESOURCEPASSWORDPOLICY": resource_password_policy,
                     "ACCOUNTPASSWORDPOLICY": account_password_policy,
+                    "NOTES": notes,
+                    "RESOURCEURL": url,
+                    "DNSNAME": dnsname,
+                    "LOCATION": location,
+                    "RESOURCEGROUPNAME": resourcegroupname
                 }
             }
         }
@@ -347,3 +357,32 @@ class PasswordManagerProClient(object):
     def delete_resource_by_name(self, resource_name):
         resource_id = self.get_resource_id(resource_name)
         return self.delete_resource(resource_id)
+
+    # https://www.manageengine.com/products/passwordmanagerpro/help/restapi.html#addaccounts
+    # add account into existing resource
+    def add_account(
+        self, 
+        username, 
+        password, 
+        resourceid,
+        accountpasswordpolicy="Strong", 
+        notes=""
+        ):
+        if not notes:
+            notes = ""
+        data = {
+            "operation": {
+                "Details": {
+                    "ACCOUNTLIST": [
+                        {
+                            "ACCOUNTNAME": username,
+                            "PASSWORD": password,
+                            "ACCOUNTPASSWORDPOLICY": accountpasswordpolicy,
+                            "NOTES": notes
+                        }
+                    ]
+                }
+            }
+        }
+        return self._post("resources/{}/accounts".format(resourceid), jdata=data)
+
