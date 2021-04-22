@@ -368,8 +368,6 @@ class PasswordManagerProClient(object):
         accountpasswordpolicy="Strong", 
         notes=""
         ):
-        if not notes:
-            notes = ""
         data = {
             "operation": {
                 "Details": {
@@ -385,4 +383,3 @@ class PasswordManagerProClient(object):
             }
         }
         return self._post("resources/{}/accounts".format(resourceid), jdata=data)
-
