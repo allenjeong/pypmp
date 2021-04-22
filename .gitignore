@@ -112,4 +112,3 @@ dmypy.json
 Pipfile.lock
 .envrc
 .vscode/settings.json
-.gitignore
